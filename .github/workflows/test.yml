@@ -14,7 +14,8 @@ jobs:
         npm run all
     - name: Check that the working dir is clean
       run: output=$(git status --porcelain) && ([ -z "$output" ] || (echo 'Working directory is not clean - make sure you ran `npm run all` and committed the result'; echo $output; false))
-    - uses: ./
+    - name: Merge dependabot PRs
+      uses: ./
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
     - name: Create Release
