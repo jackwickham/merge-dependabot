@@ -41,8 +41,7 @@
         {
           "selector": "property",
           "custom": {"regex": "[A-Z]{3}", "match": false},
-          "filter": {"regex": "^(_attr|_cdata)$", "match": false},
-          "format": ["camelCase"],
+          "format": ["camelCase", "snake_case"],
           "leadingUnderscore": "forbid"
         },
         {

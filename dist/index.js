@@ -560,24 +560,28 @@ const core = __importStar(__webpack_require__(470));
 const github = __importStar(__webpack_require__(469));
 const COMMENT = "@dependabot squash and merge";
 function run() {
+    var _a, _b;
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            if (github.context.actor !== "dependabot[bot]") {
-                core.info(`${github.context.actor} isn't dependabot, skipping`);
-                return;
-            }
             if (!github.context.payload.pull_request) {
                 core.info("Not a pull request, skipping");
                 return;
             }
             const token = core.getInput("github_token", { required: true });
             const octokit = github.getOctokit(token);
-            const prContext = {
+            const pr = yield octokit.pulls.get({
+                owner: github.context.issue.owner,
+                repo: github.context.issue.repo,
+                pull_number: github.context.issue.number,
+            });
+            if (((_a = pr.data.user) === null || _a === void 0 ? void 0 : _a.login) !== "dependabot[bot]") {
+                core.info(`${(_b = pr.data.user) === null || _b === void 0 ? void 0 : _b.login} is not dependabot, skipping`);
+            }
+            const comments = yield octokit.issues.listComments({
                 owner: github.context.issue.owner,
                 repo: github.context.issue.repo,
                 issue_number: github.context.issue.number,
-            };
-            const comments = yield octokit.issues.listComments(prContext);
+            });
             for (const comment of comments.data) {
                 if (comment.body === COMMENT) {
                     core.info("Comment has already been added, skipping");
@@ -585,7 +589,12 @@ function run() {
                 }
             }
             core.info("Adding comment");
-            yield octokit.issues.createComment(Object.assign(Object.assign({}, prContext), { body: COMMENT }));
+            yield octokit.issues.createComment({
+                owner: github.context.issue.owner,
+                repo: github.context.issue.repo,
+                issue_number: github.context.issue.number,
+                body: COMMENT,
+            });
         }
         catch (error) {
             core.setFailed(error.message);

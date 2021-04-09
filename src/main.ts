@@ -5,10 +5,6 @@ const COMMENT = "@dependabot squash and merge";
 
 async function run(): Promise<void> {
   try {
-    if (github.context.actor !== "dependabot[bot]") {
-      core.info(`${github.context.actor} isn't dependabot, skipping`);
-      return;
-    }
     if (!github.context.payload.pull_request) {
       core.info("Not a pull request, skipping");
       return;
@@ -16,13 +12,21 @@ async function run(): Promise<void> {
 
     const token = core.getInput("github_token", {required: true});
     const octokit = github.getOctokit(token);
-    const prContext = {
+
+    const pr = await octokit.pulls.get({
       owner: github.context.issue.owner,
       repo: github.context.issue.repo,
-      issue_number: github.context.issue.number, // eslint-disable-line @typescript-eslint/naming-convention
-    };
+      pull_number: github.context.issue.number,
+    });
+    if (pr.data.user?.login !== "dependabot[bot]") {
+      core.info(`${pr.data.user?.login} is not dependabot, skipping`);
+    }
 
-    const comments = await octokit.issues.listComments(prContext);
+    const comments = await octokit.issues.listComments({
+      owner: github.context.issue.owner,
+      repo: github.context.issue.repo,
+      issue_number: github.context.issue.number,
+    });
     for (const comment of comments.data) {
       if (comment.body === COMMENT) {
         core.info("Comment has already been added, skipping");
@@ -32,7 +36,9 @@ async function run(): Promise<void> {
 
     core.info("Adding comment");
     await octokit.issues.createComment({
-      ...prContext,
+      owner: github.context.issue.owner,
+      repo: github.context.issue.repo,
+      issue_number: github.context.issue.number,
       body: COMMENT,
     });
   } catch (error) {
