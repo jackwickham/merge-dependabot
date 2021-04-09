@@ -14,7 +14,7 @@ jobs:
         npm run all
     - name: Check that the working dir is clean
       run: output=$(git status --porcelain) && ([ -z "$output" ] || (echo 'Working directory is not clean - make sure you ran `npm run all` and committed the result'; echo $output; false))
-    - uses: ./action.yml
+    - uses: ./
     - name: Create Release
       id: create_release
       uses: actions/create-release@v1
