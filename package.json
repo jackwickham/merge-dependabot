@@ -1,0 +1,38 @@
+{
+  "name": "merge-dependabot",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Github action that merges dependabot PRs automatically",
+  "main": "lib/main.js",
+  "scripts": {
+    "build": "tsc",
+    "format": "prettier --write **/*.ts",
+    "format-check": "prettier --check **/*.ts",
+    "lint": "eslint src/**/*.ts",
+    "pack": "ncc build",
+    "all": "npm run build && npm run format && npm run lint && npm run pack"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jackwickham/merge-dependabot.git"
+  },
+  "keywords": [
+    "actions",
+    "node"
+  ],
+  "author": "Jack Wickham",
+  "license": "MIT",
+  "dependencies": {
+    "@actions/core": "^1.2.4",
+    "@actions/github": "^4.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^14.0.23",
+    "@typescript-eslint/parser": "^3.6.0",
+    "@zeit/ncc": "^0.20.5",
+    "eslint": "^5.16.0",
+    "eslint-plugin-github": "^4.1.0",
+    "prettier": "^1.19.1",
+    "typescript": "^3.9.7"
+  }
+}

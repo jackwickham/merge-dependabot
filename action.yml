@@ -1,0 +1,10 @@
+name: 'Merge Dependabot'
+description: 'Automatically merge dependabot PRs'
+author: 'Jack Wickham'
+inputs:
+  github_token:
+    description: 'The github token, `${{ secrets.GITHUB_TOKEN }}`'
+    required: true
+runs:
+  using: 'node12'
+  main: 'dist/index.js'
