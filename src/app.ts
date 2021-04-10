@@ -2,7 +2,7 @@ import {Probot} from "probot";
 
 const COMMENT = "@dependabot squash and merge";
 
-export default async function app(app: Probot): Promise<void> {
+export default async function mergeApp(app: Probot): Promise<void> {
   app.on("pull_request.opened", async (context) => {
     if (context.payload.pull_request.user.login !== "dependabot[bot]") {
       context.log.info("Not a dependabot PR, skipping");

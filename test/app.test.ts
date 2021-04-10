@@ -1,9 +1,9 @@
-import { Probot, ProbotOctokit } from "probot";
-import {WebhookEvent, EventPayloads} from "@octokit/webhooks"
+import {Probot, ProbotOctokit} from "probot";
+import {WebhookEvent, EventPayloads} from "@octokit/webhooks";
 import {promises as fs} from "fs";
 import path from "path";
 import nock from "nock";
-import app from "../src/app";
+import mergeApp from "../src/app";
 
 describe("app", () => {
   let probot: Probot;
@@ -16,10 +16,14 @@ describe("app", () => {
       Octokit: ProbotOctokit.defaults({
         retry: {enabled: false},
         throttle: {enabled: false},
-      })
+      }),
     });
-    app(probot);
-    event = JSON.parse(await fs.readFile(path.join(__dirname, "fixtures/webhooks/pull_request.json"), {encoding: "utf-8"}));
+    mergeApp(probot);
+    event = JSON.parse(
+      await fs.readFile(path.join(__dirname, "fixtures/webhooks/pull_request.json"), {
+        encoding: "utf-8",
+      })
+    );
   });
 
   afterEach(() => {
@@ -42,7 +46,7 @@ describe("app", () => {
         expect(body.body).toEqual("@dependabot squash and merge");
         return true;
       })
-      .reply(201)
+      .reply(201);
 
     await probot.receive(event);
   });

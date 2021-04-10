@@ -1,4 +1,4 @@
-import { run } from "probot";
-import app from "./app";
+import {run} from "probot";
+import mergeApp from "./app";
 
-run(app);
+run(mergeApp);
