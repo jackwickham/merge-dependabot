@@ -1,2 +1,2 @@
 # Merge dependabot
-Automatically comments on dependabot PRs with `@dependabot squash and merge` to merge them automatically.
+Automatically merges dependabot PRs with at least one check where all checks are passing.
