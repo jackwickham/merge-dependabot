@@ -9,7 +9,7 @@ import mergeApp from "../src/app";
 describe("app", () => {
   let probot: Probot;
   let webhook: WebhookEvent<EventPayloads.WebhookPayloadCheckSuite>;
-  let commitStatus: RestEndpointMethodTypes["repos"]["getCombinedStatusForRef"]["response"]["data"];
+  let checks: RestEndpointMethodTypes["checks"]["listForRef"]["response"]["data"];
   let pullRequest: RestEndpointMethodTypes["pulls"]["get"]["response"]["data"];
 
   beforeEach(async () => {
@@ -24,7 +24,7 @@ describe("app", () => {
     mergeApp(probot);
 
     webhook = await loadFixture("webhooks/check_suite_completed.json");
-    commitStatus = await loadFixture("responses/combined_status.json");
+    checks = await loadFixture("responses/check_runs.json");
     pullRequest = await loadFixture("responses/pull_request.json");
   });
 
@@ -33,26 +33,43 @@ describe("app", () => {
     expect(nock.isDone()).toBe(true);
   });
 
-  test("does nothing when check failed", async () => {
-    commitStatus.state = "failure";
+  test("does nothing when check in progress", async () => {
+    checks.check_runs[0].status = "in_progress";
     nock("https://api.github.com")
-      .get("/repos/Codertocat/Hello-World/commits/ec26c3e57ca3a959ca5aad62de7213c562f8c821/status")
-      .reply(200, commitStatus);
+      .get(
+        "/repos/Codertocat/Hello-World/commits/ec26c3e57ca3a959ca5aad62de7213c562f8c821/check-runs"
+      )
+      .reply(200, checks);
+    await probot.receive(webhook);
+  });
+
+  test("does nothing when check failed", async () => {
+    checks.check_runs[0].conclusion = "failure";
+    nock("https://api.github.com")
+      .get(
+        "/repos/Codertocat/Hello-World/commits/ec26c3e57ca3a959ca5aad62de7213c562f8c821/check-runs"
+      )
+      .reply(200, checks);
     await probot.receive(webhook);
   });
 
   test("does nothing when no checks", async () => {
-    commitStatus.total_count = 0;
+    checks.total_count = 0;
+    checks.check_runs = [];
     nock("https://api.github.com")
-      .get("/repos/Codertocat/Hello-World/commits/ec26c3e57ca3a959ca5aad62de7213c562f8c821/status")
-      .reply(200, commitStatus);
+      .get(
+        "/repos/Codertocat/Hello-World/commits/ec26c3e57ca3a959ca5aad62de7213c562f8c821/check-runs"
+      )
+      .reply(200, checks);
     await probot.receive(webhook);
   });
 
   test("does nothing when PR not created by dependabot", async () => {
     nock("https://api.github.com")
-      .get("/repos/Codertocat/Hello-World/commits/ec26c3e57ca3a959ca5aad62de7213c562f8c821/status")
-      .reply(200, commitStatus);
+      .get(
+        "/repos/Codertocat/Hello-World/commits/ec26c3e57ca3a959ca5aad62de7213c562f8c821/check-runs"
+      )
+      .reply(200, checks);
     pullRequest.user!.login = "not-dependabot";
     nock("https://api.github.com")
       .get("/repos/Codertocat/Hello-World/pulls/2")
@@ -62,8 +79,10 @@ describe("app", () => {
 
   test("does nothing when PR head has changed", async () => {
     nock("https://api.github.com")
-      .get("/repos/Codertocat/Hello-World/commits/ec26c3e57ca3a959ca5aad62de7213c562f8c821/status")
-      .reply(200, commitStatus);
+      .get(
+        "/repos/Codertocat/Hello-World/commits/ec26c3e57ca3a959ca5aad62de7213c562f8c821/check-runs"
+      )
+      .reply(200, checks);
     pullRequest.head.sha = "ffff";
     nock("https://api.github.com")
       .get("/repos/Codertocat/Hello-World/pulls/2")
@@ -73,8 +92,10 @@ describe("app", () => {
 
   test("does nothing when PR not mergeable", async () => {
     nock("https://api.github.com")
-      .get("/repos/Codertocat/Hello-World/commits/ec26c3e57ca3a959ca5aad62de7213c562f8c821/status")
-      .reply(200, commitStatus);
+      .get(
+        "/repos/Codertocat/Hello-World/commits/ec26c3e57ca3a959ca5aad62de7213c562f8c821/check-runs"
+      )
+      .reply(200, checks);
     pullRequest.mergeable = false;
     nock("https://api.github.com")
       .get("/repos/Codertocat/Hello-World/pulls/2")
@@ -84,8 +105,10 @@ describe("app", () => {
 
   test("merges PR when all constraints satisfied", async () => {
     nock("https://api.github.com")
-      .get("/repos/Codertocat/Hello-World/commits/ec26c3e57ca3a959ca5aad62de7213c562f8c821/status")
-      .reply(200, commitStatus);
+      .get(
+        "/repos/Codertocat/Hello-World/commits/ec26c3e57ca3a959ca5aad62de7213c562f8c821/check-runs"
+      )
+      .reply(200, checks);
     nock("https://api.github.com")
       .get("/repos/Codertocat/Hello-World/pulls/2")
       .reply(200, pullRequest);

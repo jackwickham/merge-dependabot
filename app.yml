@@ -132,7 +132,7 @@ name: Merge Dependabot
 url: https://github.com/jackwickham/merge-dependabot
 
 # A description of the GitHub App.
-description: Automatically merge dependabot PRs when they have checks that are all passing
+description: Automatically merges dependabot PRs when they have checks that are all passing
 
 # Set to true when your GitHub App is available to the public or false when it is only accessible to the owner of the app.
 # Default: true
