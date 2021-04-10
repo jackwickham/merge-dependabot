@@ -129,7 +129,7 @@ default_permissions:
 name: Merge Dependabot
 
 # The homepage of your GitHub App.
-# url: https://example.com/
+url: https://github.com/jackwickham/merge-dependabot
 
 # A description of the GitHub App.
 description: Automatically add `@dependabot squash and merge` to dependabot PRs
