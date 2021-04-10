@@ -5,6 +5,7 @@
   "description": "Github action that merges dependabot PRs automatically",
   "main": "lib/main.js",
   "scripts": {
+    "start": "node --async-stack-traces ./lib/index.js",
     "build": "tsc",
     "format": "prettier --write **/*.ts",
     "format-check": "prettier --check **/*.ts",
