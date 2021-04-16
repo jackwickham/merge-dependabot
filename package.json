@@ -38,7 +38,7 @@
     "jest-circus": "^26.6.3",
     "nock": "^13.0.11",
     "prettier": "^1.19.1",
-    "ts-jest": "^26.5.4",
+    "ts-jest": "^26.5.5",
     "typescript": "^3.9.7"
   },
   "engines": {
