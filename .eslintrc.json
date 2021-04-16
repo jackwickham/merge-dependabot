@@ -1,6 +1,9 @@
 {
     "plugins": ["@typescript-eslint"],
-    "extends": ["plugin:github/recommended"],
+    "extends": [
+      "eslint:recommended",
+      "plugin:@typescript-eslint/recommended"
+    ],
     "parser": "@typescript-eslint/parser",
     "parserOptions": {
       "ecmaVersion": 9,
@@ -87,8 +90,7 @@
       "@typescript-eslint/require-array-sort-compare": "error",
       "@typescript-eslint/restrict-plus-operands": "error",
       "@typescript-eslint/type-annotation-spacing": "error",
-      "@typescript-eslint/unbound-method": "error",
-      "github/no-then": "warn"
+      "@typescript-eslint/unbound-method": "error"
     },
     "env": {
       "node": true,
