@@ -112,9 +112,7 @@ describe("app", () => {
     nock("https://api.github.com")
       .get("/repos/Codertocat/Hello-World/pulls/2")
       .reply(200, pullRequest);
-    nock("https://api.github.com")
-      .put("/repos/Codertocat/Hello-World/pulls/2/merge")
-      .reply(200);
+    nock("https://api.github.com").put("/repos/Codertocat/Hello-World/pulls/2/merge").reply(200);
 
     await probot.receive(webhook);
   });
