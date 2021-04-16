@@ -112,9 +112,7 @@ describe("app", () => {
     nock("https://api.github.com")
       .get("/repos/Codertocat/Hello-World/pulls/2")
       .reply(200, pullRequest);
-    nock("https://api.github.com")
-      .put("/repos/Codertocat/Hello-World/pulls/2/merge")
-      .reply(200);
+    nock("https://api.github.com").put("/repos/Codertocat/Hello-World/pulls/2/merge").reply(200);
     const mergedPr: RestEndpointMethodTypes["pulls"]["get"]["response"]["data"] = await loadFixture(
       "responses/pull_request.json"
     );
@@ -136,9 +134,7 @@ describe("app", () => {
       .get("/repos/Codertocat/Hello-World/pulls/2")
       .times(2)
       .reply(200, pullRequest);
-    nock("https://api.github.com")
-      .put("/repos/Codertocat/Hello-World/pulls/2/merge")
-      .reply(200);
+    nock("https://api.github.com").put("/repos/Codertocat/Hello-World/pulls/2/merge").reply(200);
     nock("https://api.github.com")
       .patch("/repos/Codertocat/Hello-World/pulls/2", (body) => {
         expect(body.state).toEqual("closed");
