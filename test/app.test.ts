@@ -115,6 +115,36 @@ describe("app", () => {
     nock("https://api.github.com")
       .put("/repos/Codertocat/Hello-World/pulls/2/merge")
       .reply(200);
+    const mergedPr: RestEndpointMethodTypes["pulls"]["get"]["response"]["data"] = await loadFixture(
+      "responses/pull_request.json"
+    );
+    mergedPr.state = "closed";
+    nock("https://api.github.com")
+      .get("/repos/Codertocat/Hello-World/pulls/2")
+      .reply(200, mergedPr);
+
+    await probot.receive(webhook);
+  });
+
+  test("closes PR after merging if it isn't closed automatically", async () => {
+    nock("https://api.github.com")
+      .get(
+        "/repos/Codertocat/Hello-World/commits/ec26c3e57ca3a959ca5aad62de7213c562f8c821/check-runs"
+      )
+      .reply(200, checks);
+    nock("https://api.github.com")
+      .get("/repos/Codertocat/Hello-World/pulls/2")
+      .times(2)
+      .reply(200, pullRequest);
+    nock("https://api.github.com")
+      .put("/repos/Codertocat/Hello-World/pulls/2/merge")
+      .reply(200);
+    nock("https://api.github.com")
+      .patch("/repos/Codertocat/Hello-World/pulls/2", (body) => {
+        expect(body.state).toEqual("closed");
+        return true;
+      })
+      .reply(200);
 
     await probot.receive(webhook);
   });

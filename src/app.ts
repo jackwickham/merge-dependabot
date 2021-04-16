@@ -54,13 +54,17 @@ export default async function mergeApp(app: Probot): Promise<void> {
       );
 
       // Workaround for GH bug that doesn't close PRs when they merge
-      const {data: updatedPr} = await context.octokit.pulls.get(context.pullRequest({pull_number: prNumber}));
+      const {data: updatedPr} = await context.octokit.pulls.get(
+        context.pullRequest({pull_number: prNumber})
+      );
       if (updatedPr.state === "open") {
         context.log(`Closing merged PR`);
-        await context.octokit.pulls.update(context.pullRequest({
-          pull_number: prNumber,
-          state: "closed"
-        }));
+        await context.octokit.pulls.update(
+          context.pullRequest({
+            pull_number: prNumber,
+            state: "closed",
+          })
+        );
       }
     }
   });
