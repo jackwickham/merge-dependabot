@@ -11,6 +11,7 @@ describe("app", () => {
   let webhook: WebhookEvent<EventPayloads.WebhookPayloadCheckSuite>;
   let checks: RestEndpointMethodTypes["checks"]["listForRef"]["response"]["data"];
   let pullRequest: RestEndpointMethodTypes["pulls"]["get"]["response"]["data"];
+  let prCommits: RestEndpointMethodTypes["pulls"]["listCommits"]["response"]["data"];
 
   beforeEach(async () => {
     nock.disableNetConnect();
@@ -26,6 +27,7 @@ describe("app", () => {
     webhook = await loadFixture("webhooks/check_suite_completed.json");
     checks = await loadFixture("responses/check_runs.json");
     pullRequest = await loadFixture("responses/pull_request.json");
+    prCommits = await loadFixture("responses/pr_commits.json");
   });
 
   afterEach(() => {
@@ -103,6 +105,23 @@ describe("app", () => {
     await probot.receive(webhook);
   });
 
+  test("does nothing when any commits not committed by dependabot", async () => {
+    nock("https://api.github.com")
+      .get(
+        "/repos/Codertocat/Hello-World/commits/ec26c3e57ca3a959ca5aad62de7213c562f8c821/check-runs"
+      )
+      .reply(200, checks);
+    nock("https://api.github.com")
+      .get("/repos/Codertocat/Hello-World/pulls/2")
+      .reply(200, pullRequest);
+    prCommits[1].committer!.login = "not-dependabot";
+    nock("https://api.github.com")
+      .get("/repos/Codertocat/Hello-World/pulls/2/commits")
+      .reply(200, prCommits);
+
+    await probot.receive(webhook);
+  });
+
   test("merges PR when all constraints satisfied", async () => {
     nock("https://api.github.com")
       .get(
@@ -112,6 +131,9 @@ describe("app", () => {
     nock("https://api.github.com")
       .get("/repos/Codertocat/Hello-World/pulls/2")
       .reply(200, pullRequest);
+    nock("https://api.github.com")
+      .get("/repos/Codertocat/Hello-World/pulls/2/commits")
+      .reply(200, prCommits);
     nock("https://api.github.com").put("/repos/Codertocat/Hello-World/pulls/2/merge").reply(200);
 
     await probot.receive(webhook);
