@@ -48,9 +48,9 @@ export default async function mergeApp(app: Probot): Promise<void> {
         context.pullRequest({pull_number: prNumber})
       );
       for (const commit of commits) {
-        if (commit.committer?.login !== "dependabot[bot]") {
+        if (commit.author?.login !== "dependabot[bot]") {
           context.log.info(
-            `Commit ${commit.sha} on PR ${prNumber} not committed by dependabot, skipping`
+            `Commit ${commit.sha} on PR ${prNumber} not authored by dependabot, skipping`
           );
           return;
         }

@@ -114,7 +114,7 @@ describe("app", () => {
     nock("https://api.github.com")
       .get("/repos/Codertocat/Hello-World/pulls/2")
       .reply(200, pullRequest);
-    prCommits[1].committer!.login = "not-dependabot";
+    prCommits[1].author!.login = "not-dependabot";
     nock("https://api.github.com")
       .get("/repos/Codertocat/Hello-World/pulls/2/commits")
       .reply(200, prCommits);
