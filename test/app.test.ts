@@ -20,7 +20,6 @@ describe("app", () => {
 
   beforeEach(async () => {
     nock.disableNetConnect();
-    nock.cleanAll();
 
     probot = new Probot({
       githubToken: "test",
@@ -45,6 +44,11 @@ describe("app", () => {
     cancelAdvanceTimers();
     expect(nock.pendingMocks()).toEqual([]);
     expect(nock.isDone()).toBe(true);
+  });
+
+  afterEach(() => {
+    nock.cleanAll();
+    nock.enableNetConnect();
   });
 
   test("does nothing when check in progress", async () => {
