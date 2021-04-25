@@ -1,4 +1,4 @@
-import {Probot} from "probot";
+import {Probot, Context} from "probot";
 
 export default async function mergeApp(app: Probot): Promise<void> {
   app.on("check_suite.completed", async (context) => {
@@ -39,7 +39,7 @@ export default async function mergeApp(app: Probot): Promise<void> {
         );
         return;
       }
-      if (!pr.mergeable) {
+      if (!(await mergeability(pr, context))) {
         context.log.info(`PR ${prNumber} is not mergeable, skipping`);
         return;
       }
@@ -66,4 +66,26 @@ export default async function mergeApp(app: Probot): Promise<void> {
       );
     }
   });
+}
+
+async function mergeability(
+  pr: {mergeable: boolean | null; number: number},
+  context: Context,
+  iteration = 1
+): Promise<boolean> {
+  if (pr.mergeable !== null) {
+    return pr.mergeable;
+  }
+
+  if (iteration > 4) {
+    context.log.warn("PR mergeability not available after 5 iterations");
+    return false;
+  }
+
+  await new Promise((resolve) => setTimeout(resolve, 10000));
+
+  const {data: updatedPr} = await context.octokit.pulls.get(
+    context.pullRequest({pull_number: pr.number})
+  );
+  return mergeability(updatedPr, context, iteration + 1);
 }
