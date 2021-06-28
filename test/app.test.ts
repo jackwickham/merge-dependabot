@@ -1,5 +1,5 @@
 import {Probot, ProbotOctokit} from "probot";
-import {WebhookEvent, EventPayloads} from "@octokit/webhooks";
+import {EmitterWebhookEvent} from "@octokit/webhooks";
 import {RestEndpointMethodTypes} from "@octokit/plugin-rest-endpoint-methods";
 import {promises as fs} from "fs";
 import path from "path";
@@ -9,7 +9,7 @@ import mergeApp from "../src/app";
 
 describe("app", () => {
   let probot: Probot;
-  let webhook: WebhookEvent<EventPayloads.WebhookPayloadCheckSuite>;
+  let webhook: EmitterWebhookEvent;
   let checks: RestEndpointMethodTypes["checks"]["listForRef"]["response"]["data"];
   let pullRequest: RestEndpointMethodTypes["pulls"]["get"]["response"]["data"];
   let prCommits: RestEndpointMethodTypes["pulls"]["listCommits"]["response"]["data"];
