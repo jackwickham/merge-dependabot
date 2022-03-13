@@ -22,7 +22,7 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     # if: ${{ github.ref == 'refs/heads/main' }}
-    needs: build
+    needs: test
     steps:
       - name: Compile
         run: |
