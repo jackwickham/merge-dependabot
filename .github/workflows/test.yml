@@ -7,23 +7,26 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
-    - name: Test
-      run: |
-        npm ci
-        npm run all
-    - name: Check that the working dir is clean
-      run: output=$(git status --porcelain) && ([ -z "$output" ] || (echo 'Working directory is not clean - make sure you ran `npm run all` and committed the result'; echo $output; false))
-    - name: Create deployment
-      uses: jackwickham/create-deployment-action@main
-      if: ${{ github.ref == 'refs/heads/main' }}
-      with:
-        token: ${{ github.token }}
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Test
+        run: |
+          npm ci
+          npm run all
+      - name: Check that the working dir is clean
+        run: output=$(git status --porcelain) && ([ -z "$output" ] || (echo 'Working directory is not clean - make sure you ran `npm run all` and committed the result'; echo $output; false))
+      - name: Create deployment
+        uses: jackwickham/create-deployment-action@main
+        if: ${{ github.ref == 'refs/heads/main' }}
+        with:
+          token: ${{ github.token }}
   deploy:
     runs-on: ubuntu-latest
     # if: ${{ github.ref == 'refs/heads/main' }}
     needs: test
     steps:
+      - name: Checkout
+        uses: actions/checkout@v3
       - name: Compile
         run: |
           npm ci
