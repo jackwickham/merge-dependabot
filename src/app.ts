@@ -16,13 +16,22 @@ export default async function mergeApp(app: Probot): Promise<void> {
         `Found fewer checks than total, skipping for safety (${status.total_count} > ${status.check_runs.length})`
       );
     }
+    let anySuccess = false;
     for (const run of status.check_runs) {
-      if (run.status !== "completed" || run.conclusion !== "success") {
+      if (run.status === "completed" && run.conclusion === "success") {
+        anySuccess = true;
+      } else if (run.status === "completed" && run.conclusion === "skipped") {
+        // No action required
+      } else {
         context.log.info(
           `Check ${run.name} is currently ${run.status} (${run.conclusion}), skipping`
         );
         return;
       }
+    }
+    if (!anySuccess) {
+      context.log.info(`All checks are currently skipped, skipping`);
+      return;
     }
 
     for (const {number: prNumber} of context.payload.check_suite.pull_requests) {
