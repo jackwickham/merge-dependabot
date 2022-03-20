@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-FROM node:16
+FROM node:16.14.2
 
 ENV NODE_ENV=production
 WORKDIR /app
@@ -9,7 +9,7 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci --only=production
 
-# Now copy everything over, and compile
-COPY . .
+# Now copy compiled code over
+COPY ./lib ./lib
 
 CMD npm run start
