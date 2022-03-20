@@ -7,9 +7,9 @@ WORKDIR /app
 
 # Only copy package and package-lock, so npm ci can be cached
 COPY package.json package-lock.json ./
-RUN npm ci --only=production
+RUN ["npm", "ci", "--only=production"]
 
 # Now copy compiled code over
 COPY ./lib ./lib
 
-CMD npm run start
+CMD ["npm", "run", "start"]
