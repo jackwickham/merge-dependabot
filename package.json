@@ -24,7 +24,7 @@
   "author": "Jack Wickham",
   "license": "MIT",
   "dependencies": {
-    "probot": "^12.2.4"
+    "probot": "^12.2.5"
   },
   "devDependencies": {
     "@types/jest": "^28.1.3",
