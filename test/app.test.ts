@@ -29,10 +29,8 @@ describe("app", () => {
       }),
     });
     nock("https://api.github.com")
-    .get(
-      "/app/installations"
-    )
-    .reply(200, {total_count: 2, installations: []});
+      .get("/app/installations")
+      .reply(200, {total_count: 2, installations: []});
     mergeApp(probot);
 
     webhook = await loadFixture("webhooks/check_suite_completed.json");
