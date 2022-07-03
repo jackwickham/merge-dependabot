@@ -80,6 +80,20 @@ describe("app", () => {
     await probot.receive(webhook);
   });
 
+  test("does nothing when all checks are skipped", async () => {
+    checks.check_runs[0].conclusion = "skipped";
+    checks.check_runs[1].conclusion = "skipped";
+    nock("https://api.github.com")
+      .get("/repos/Codertocat/Hello-World/pulls/2")
+      .reply(200, pullRequest);
+    nock("https://api.github.com")
+      .get(
+        "/repos/Codertocat/Hello-World/commits/ec26c3e57ca3a959ca5aad62de7213c562f8c821/check-runs"
+      )
+      .reply(200, checks);
+    await probot.receive(webhook);
+  });
+
   test("does nothing when no checks", async () => {
     checks.total_count = 0;
     checks.check_runs = [];
@@ -196,6 +210,24 @@ describe("app", () => {
   });
 
   test("merges PR when all constraints satisfied", async () => {
+    nock("https://api.github.com")
+      .get("/repos/Codertocat/Hello-World/pulls/2")
+      .reply(200, pullRequest);
+    nock("https://api.github.com")
+      .get(
+        "/repos/Codertocat/Hello-World/commits/ec26c3e57ca3a959ca5aad62de7213c562f8c821/check-runs"
+      )
+      .reply(200, checks);
+    nock("https://api.github.com")
+      .get("/repos/Codertocat/Hello-World/pulls/2/commits")
+      .reply(200, prCommits);
+    nock("https://api.github.com").put("/repos/Codertocat/Hello-World/pulls/2/merge").reply(200);
+
+    await probot.receive(webhook);
+  });
+
+  test("merges PR when all constraints satisfied but some checks were skipped", async () => {
+    checks.check_runs[0].conclusion = "skipped";
     nock("https://api.github.com")
       .get("/repos/Codertocat/Hello-World/pulls/2")
       .reply(200, pullRequest);
