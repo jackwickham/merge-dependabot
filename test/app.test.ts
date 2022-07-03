@@ -28,6 +28,11 @@ describe("app", () => {
         throttle: {enabled: false},
       }),
     });
+    nock("https://api.github.com")
+    .get(
+      "/app/installations"
+    )
+    .reply(200, {total_count: 2, installations: []});
     mergeApp(probot);
 
     webhook = await loadFixture("webhooks/check_suite_completed.json");
@@ -54,6 +59,9 @@ describe("app", () => {
   test("does nothing when check in progress", async () => {
     checks.check_runs[0].status = "in_progress";
     nock("https://api.github.com")
+      .get("/repos/Codertocat/Hello-World/pulls/2")
+      .reply(200, pullRequest);
+    nock("https://api.github.com")
       .get(
         "/repos/Codertocat/Hello-World/commits/ec26c3e57ca3a959ca5aad62de7213c562f8c821/check-runs"
       )
@@ -63,6 +71,9 @@ describe("app", () => {
 
   test("does nothing when check failed", async () => {
     checks.check_runs[0].conclusion = "failure";
+    nock("https://api.github.com")
+      .get("/repos/Codertocat/Hello-World/pulls/2")
+      .reply(200, pullRequest);
     nock("https://api.github.com")
       .get(
         "/repos/Codertocat/Hello-World/commits/ec26c3e57ca3a959ca5aad62de7213c562f8c821/check-runs"
@@ -75,6 +86,9 @@ describe("app", () => {
     checks.total_count = 0;
     checks.check_runs = [];
     nock("https://api.github.com")
+      .get("/repos/Codertocat/Hello-World/pulls/2")
+      .reply(200, pullRequest);
+    nock("https://api.github.com")
       .get(
         "/repos/Codertocat/Hello-World/commits/ec26c3e57ca3a959ca5aad62de7213c562f8c821/check-runs"
       )
@@ -83,25 +97,7 @@ describe("app", () => {
   });
 
   test("does nothing when PR not created by dependabot", async () => {
-    nock("https://api.github.com")
-      .get(
-        "/repos/Codertocat/Hello-World/commits/ec26c3e57ca3a959ca5aad62de7213c562f8c821/check-runs"
-      )
-      .reply(200, checks);
     pullRequest.user!.login = "not-dependabot";
-    nock("https://api.github.com")
-      .get("/repos/Codertocat/Hello-World/pulls/2")
-      .reply(200, pullRequest);
-    await probot.receive(webhook);
-  });
-
-  test("does nothing when PR head has changed", async () => {
-    nock("https://api.github.com")
-      .get(
-        "/repos/Codertocat/Hello-World/commits/ec26c3e57ca3a959ca5aad62de7213c562f8c821/check-runs"
-      )
-      .reply(200, checks);
-    pullRequest.head.sha = "ffff";
     nock("https://api.github.com")
       .get("/repos/Codertocat/Hello-World/pulls/2")
       .reply(200, pullRequest);
@@ -203,13 +199,13 @@ describe("app", () => {
 
   test("merges PR when all constraints satisfied", async () => {
     nock("https://api.github.com")
+      .get("/repos/Codertocat/Hello-World/pulls/2")
+      .reply(200, pullRequest);
+    nock("https://api.github.com")
       .get(
         "/repos/Codertocat/Hello-World/commits/ec26c3e57ca3a959ca5aad62de7213c562f8c821/check-runs"
       )
       .reply(200, checks);
-    nock("https://api.github.com")
-      .get("/repos/Codertocat/Hello-World/pulls/2")
-      .reply(200, pullRequest);
     nock("https://api.github.com")
       .get("/repos/Codertocat/Hello-World/pulls/2/commits")
       .reply(200, prCommits);
