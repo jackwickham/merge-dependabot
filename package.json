@@ -31,7 +31,7 @@
     "@types/nock": "^11.1.0",
     "@types/node": "^18.8.3",
     "@typescript-eslint/eslint-plugin": "^5.39.0",
-    "@typescript-eslint/parser": "^5.39.0",
+    "@typescript-eslint/parser": "^5.40.0",
     "eslint": "^8.24.0",
     "eslint-plugin-jest": "^27.1.1",
     "jest": "^28.1.3",
