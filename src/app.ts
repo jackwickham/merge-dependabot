@@ -1,15 +1,8 @@
 import {Probot, ProbotOctokit} from "probot";
-import type {components} from "@octokit/openapi-types";
 import {Logger} from "pino";
 
 type WithRepo = <T>(args: T) => T & {owner: string; repo: string};
 type Octokit = InstanceType<typeof ProbotOctokit>;
-
-// Interface for factory installation options used by octokit.auth
-interface FactoryInstallationOptions {
-  octokitOptions?: unknown;
-  [key: string]: unknown;
-}
 
 interface Context {
   readonly octokit: Octokit;
@@ -27,58 +20,6 @@ export default async function mergeApp(app: Probot): Promise<void> {
       });
     }
   });
-
-  await checkOpenPrs(await app.auth(), app.log);
-}
-
-async function checkOpenPrs(octokit: Octokit, log: Logger): Promise<void> {
-  let installations;
-  try {
-    installations = await octokit.paginate(octokit.rest.apps.listInstallations);
-  } catch (e) {
-    log.error(`Error listing installations: ${e}`);
-    return;
-  }
-  for (const installation of installations) {
-    let installationOctokit, repos;
-    try {
-      installationOctokit = (await octokit.auth({
-        type: "installation",
-        installationId: installation.id,
-        factory: (options: FactoryInstallationOptions) => {
-          return new ProbotOctokit({auth: options, octokitOptions: options.octokitOptions});
-        },
-      })) as Octokit;
-      repos = (await installationOctokit.paginate(
-        installationOctokit.rest.apps.listReposAccessibleToInstallation
-      )) as unknown as components["schemas"]["repository"][];
-    } catch (e) {
-      log.error(`Error listing repos for user ${installation.account?.name}: ${e}`);
-      continue;
-    }
-
-    for (const repo of repos) {
-      let context: Context, prs;
-      try {
-        context = {
-          octokit: installationOctokit,
-          withRepo: <T>(args: T) => Object.assign({owner: repo.owner.login, repo: repo.name}, args),
-          log: log.child({owner: repo.owner.login, repo: repo.name, trigger: "init"}),
-        };
-
-        prs = await context.octokit.paginate(
-          context.octokit.rest.pulls.list,
-          context.withRepo<{state: "open"; sort: "created"}>({state: "open", sort: "created"})
-        );
-      } catch (e) {
-        log.error(`Error listing PRs for ${repo.owner.login}/${repo.name}: ${e}`);
-        continue;
-      }
-      for (const pr of prs) {
-        await checkPr(pr.number, context);
-      }
-    }
-  }
 }
 
 async function checkPr(prNumber: number, context: Context): Promise<void> {
