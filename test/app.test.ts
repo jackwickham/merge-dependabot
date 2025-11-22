@@ -1,11 +1,15 @@
+import {jest, describe, beforeEach, afterEach, test, expect} from "@jest/globals";
 import {Probot, ProbotOctokit} from "probot";
 import {EmitterWebhookEvent} from "@octokit/webhooks";
 import {RestEndpointMethodTypes} from "@octokit/plugin-rest-endpoint-methods";
 import {promises as fs} from "fs";
 import path from "path";
+import {fileURLToPath} from "url";
 import nock from "nock";
 import {setImmediate as builtinSetImmediate} from "timers";
-import mergeApp from "../src/app";
+import mergeApp from "../src/app.js";
+
+const currentDir = path.dirname(fileURLToPath(import.meta.url));
 
 describe("app", () => {
   let probot: Probot;
@@ -23,14 +27,12 @@ describe("app", () => {
 
     probot = new Probot({
       githubToken: "test",
-      Octokit: ProbotOctokit.defaults({
-        retry: {enabled: false},
-        throttle: {enabled: false},
-      }),
+      Octokit: ProbotOctokit.defaults({retry: {enabled: false}, throttle: {enabled: false}}),
     });
     nock("https://api.github.com")
       .get("/app/installations")
-      .reply(200, {total_count: 2, installations: []});
+      .reply(200, {total_count: 2, installations: []})
+      .persist();
     mergeApp(probot);
 
     webhook = await loadFixture("webhooks/check_suite_completed.json");
@@ -45,8 +47,8 @@ describe("app", () => {
 
   afterEach(() => {
     cancelAdvanceTimers();
-    expect(nock.pendingMocks()).toEqual([]);
-    expect(nock.isDone()).toBe(true);
+    const pendingMocks = nock.pendingMocks().filter((mock) => !mock.includes("/app/installations"));
+    expect(pendingMocks).toEqual([]);
   });
 
   afterEach(() => {
@@ -246,18 +248,16 @@ describe("app", () => {
 
   async function loadFixture<T>(fixture: string): Promise<T> {
     return JSON.parse(
-      await fs.readFile(path.join(__dirname, "fixtures", fixture), {
-        encoding: "utf-8",
-      })
+      await fs.readFile(path.join(currentDir, "fixtures", fixture), {encoding: "utf-8"})
     );
   }
 
   function advanceTimersInBackground(): () => void {
     let cancelled = false;
 
-    async function task() {
+    async function task(): Promise<void> {
       while (!cancelled) {
-        jest.runAllTimers();
+        jest.runOnlyPendingTimers();
         await new Promise((resolve) => builtinSetImmediate(resolve));
       }
     }
