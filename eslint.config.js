@@ -1,0 +1,119 @@
+import eslint from "@eslint/js";
+import tseslint from "@typescript-eslint/eslint-plugin";
+import tsparser from "@typescript-eslint/parser";
+import jest from "eslint-plugin-jest";
+
+export default [
+  {
+    ignores: ["dist/", "lib/", "node_modules/"],
+  },
+  eslint.configs.recommended,
+  {
+    files: ["**/*.ts"],
+    languageOptions: {
+      parser: tsparser,
+      parserOptions: {
+        ecmaVersion: 9,
+        sourceType: "module",
+        project: "./tsconfig.json",
+      },
+      globals: {
+        setTimeout: "readonly",
+        Promise: "readonly",
+      },
+    },
+    plugins: {
+      "@typescript-eslint": tseslint,
+      jest: jest,
+    },
+    rules: {
+      ...tseslint.configs.recommended.rules,
+      ...jest.configs.recommended.rules,
+      ...jest.configs.style.rules,
+      "eslint-comments/no-use": "off",
+      "import/no-namespace": "off",
+      "no-unused-vars": "off",
+      "@typescript-eslint/no-unused-vars": "error",
+      "@typescript-eslint/explicit-member-accessibility": [
+        "error",
+        {accessibility: "explicit"},
+      ],
+      "@typescript-eslint/no-require-imports": "error",
+      "@typescript-eslint/array-type": "error",
+      "@typescript-eslint/await-thenable": "error",
+      "@typescript-eslint/ban-ts-comment": [
+        "error",
+        {
+          "ts-ignore": "allow-with-description",
+          "ts-expect-error": "allow-with-description",
+        },
+      ],
+      camelcase: "off",
+      "@typescript-eslint/naming-convention": [
+        "error",
+        {
+          selector: "variableLike",
+          custom: {regex: "[A-Z]{3}", match: false},
+          format: ["camelCase"],
+          leadingUnderscore: "forbid",
+        },
+        {
+          selector: "parameter",
+          custom: {regex: "[A-Z]{3}", match: false},
+          format: ["camelCase"],
+          leadingUnderscore: "allow",
+        },
+        {
+          selector: "property",
+          custom: {regex: "[A-Z]{3}", match: false},
+          format: ["camelCase", "snake_case"],
+          leadingUnderscore: "forbid",
+        },
+        {
+          selector: "property",
+          modifiers: ["readonly", "static"],
+          format: ["UPPER_CASE"],
+          leadingUnderscore: "forbid",
+        },
+        {
+          selector: "variable",
+          custom: {regex: "[a-z].*[A-Z]{3}|[A-Z]{3}.*[a-z]", match: false},
+          format: ["camelCase", "UPPER_CASE"],
+          leadingUnderscore: "forbid",
+        },
+        {
+          selector: "typeLike",
+          custom: {regex: "[A-Z]{3}", match: false},
+          format: ["PascalCase"],
+          leadingUnderscore: "forbid",
+        },
+        {selector: "enumMember", format: ["UPPER_CASE"], leadingUnderscore: "forbid"},
+      ],
+      "@typescript-eslint/explicit-function-return-type": [
+        "error",
+        {allowExpressions: true},
+      ],
+      "@typescript-eslint/consistent-type-definitions": ["error", "interface"],
+      "@typescript-eslint/no-array-constructor": "error",
+      "@typescript-eslint/no-empty-interface": "error",
+      "@typescript-eslint/no-explicit-any": "error",
+      "@typescript-eslint/no-extraneous-class": "error",
+      "@typescript-eslint/no-for-in-array": "error",
+      "@typescript-eslint/no-inferrable-types": "error",
+      "@typescript-eslint/no-misused-new": "error",
+      "@typescript-eslint/no-namespace": "error",
+      "@typescript-eslint/no-unnecessary-qualifier": "error",
+      "@typescript-eslint/no-unnecessary-type-assertion": "error",
+      "@typescript-eslint/no-useless-constructor": "error",
+      "@typescript-eslint/no-var-requires": "error",
+      "@typescript-eslint/prefer-for-of": "warn",
+      "@typescript-eslint/prefer-function-type": "warn",
+      "@typescript-eslint/prefer-includes": "error",
+      "@typescript-eslint/prefer-string-starts-ends-with": "error",
+      "@typescript-eslint/promise-function-async": "error",
+      "@typescript-eslint/require-array-sort-compare": "error",
+      "@typescript-eslint/restrict-plus-operands": "error",
+      "@typescript-eslint/unbound-method": "error",
+    },
+  },
+];

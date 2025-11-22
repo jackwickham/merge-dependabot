@@ -1,10 +1,15 @@
 import {Probot, ProbotOctokit} from "probot";
-import {FactoryInstallationOptions} from "@octokit/auth-app/dist-types/types";
 import type {components} from "@octokit/openapi-types";
 import {Logger} from "pino";
 
 type WithRepo = <T>(args: T) => T & {owner: string; repo: string};
 type Octokit = InstanceType<typeof ProbotOctokit>;
+
+// Interface for factory installation options used by octokit.auth
+interface FactoryInstallationOptions {
+  octokitOptions?: unknown;
+  [key: string]: unknown;
+}
 
 interface Context {
   readonly octokit: Octokit;
@@ -29,7 +34,7 @@ export default async function mergeApp(app: Probot): Promise<void> {
 async function checkOpenPrs(octokit: Octokit, log: Logger): Promise<void> {
   let installations;
   try {
-    installations = await octokit.paginate(octokit.apps.listInstallations);
+    installations = await octokit.paginate(octokit.rest.apps.listInstallations);
   } catch (e) {
     log.error(`Error listing installations: ${e}`);
     return;
@@ -41,14 +46,11 @@ async function checkOpenPrs(octokit: Octokit, log: Logger): Promise<void> {
         type: "installation",
         installationId: installation.id,
         factory: (options: FactoryInstallationOptions) => {
-          return new ProbotOctokit({
-            auth: options,
-            octokitOptions: options.octokitOptions,
-          });
+          return new ProbotOctokit({auth: options, octokitOptions: options.octokitOptions});
         },
       })) as Octokit;
       repos = (await installationOctokit.paginate(
-        installationOctokit.apps.listReposAccessibleToInstallation
+        installationOctokit.rest.apps.listReposAccessibleToInstallation
       )) as unknown as components["schemas"]["repository"][];
     } catch (e) {
       log.error(`Error listing repos for user ${installation.account?.name}: ${e}`);
@@ -65,11 +67,8 @@ async function checkOpenPrs(octokit: Octokit, log: Logger): Promise<void> {
         };
 
         prs = await context.octokit.paginate(
-          context.octokit.pulls.list,
-          context.withRepo<{state: "open"; sort: "created"}>({
-            state: "open",
-            sort: "created",
-          })
+          context.octokit.rest.pulls.list,
+          context.withRepo<{state: "open"; sort: "created"}>({state: "open", sort: "created"})
         );
       } catch (e) {
         log.error(`Error listing PRs for ${repo.owner.login}/${repo.name}: ${e}`);
@@ -85,12 +84,14 @@ async function checkOpenPrs(octokit: Octokit, log: Logger): Promise<void> {
 async function checkPr(prNumber: number, context: Context): Promise<void> {
   try {
     context.log.info(`Checking PR ${prNumber}`);
-    const {data: pr} = await context.octokit.pulls.get(context.withRepo({pull_number: prNumber}));
+    const {data: pr} = await context.octokit.rest.pulls.get(
+      context.withRepo({pull_number: prNumber})
+    );
     if (pr.user?.login !== "dependabot[bot]") {
       context.log.info(`PR ${prNumber} not authored by dependabot, skipping`);
       return;
     }
-    const {data: checkStatus} = await context.octokit.checks.listForRef(
+    const {data: checkStatus} = await context.octokit.rest.checks.listForRef(
       context.withRepo({ref: pr.head.sha})
     );
     if (checkStatus.total_count === 0) {
@@ -126,7 +127,7 @@ async function checkPr(prNumber: number, context: Context): Promise<void> {
       return;
     }
 
-    const {data: commits} = await context.octokit.pulls.listCommits(
+    const {data: commits} = await context.octokit.rest.pulls.listCommits(
       context.withRepo({pull_number: prNumber})
     );
     for (const commit of commits) {
@@ -139,12 +140,8 @@ async function checkPr(prNumber: number, context: Context): Promise<void> {
     }
 
     context.log.info(`Merging ${prNumber}`);
-    await context.octokit.pulls.merge(
-      context.withRepo({
-        pull_number: prNumber,
-        sha: pr.head.sha,
-        merge_method: "squash",
-      })
+    await context.octokit.rest.pulls.merge(
+      context.withRepo({pull_number: prNumber, sha: pr.head.sha, merge_method: "squash"})
     );
   } catch (e) {
     context.log.error(`Error processing PR ${prNumber}: ${e}`);
@@ -167,7 +164,7 @@ async function mergeability(
 
   await new Promise((resolve) => setTimeout(resolve, 10000));
 
-  const {data: updatedPr} = await context.octokit.pulls.get(
+  const {data: updatedPr} = await context.octokit.rest.pulls.get(
     context.withRepo({pull_number: pr.number})
   );
   return mergeability(updatedPr, context, iteration + 1);

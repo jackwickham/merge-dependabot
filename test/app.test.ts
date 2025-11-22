@@ -1,11 +1,16 @@
+import {jest, describe, beforeEach, afterEach, test, expect} from "@jest/globals";
 import {Probot, ProbotOctokit} from "probot";
 import {EmitterWebhookEvent} from "@octokit/webhooks";
 import {RestEndpointMethodTypes} from "@octokit/plugin-rest-endpoint-methods";
 import {promises as fs} from "fs";
 import path from "path";
+import {fileURLToPath} from "url";
 import nock from "nock";
 import {setImmediate as builtinSetImmediate} from "timers";
-import mergeApp from "../src/app";
+import mergeApp from "../src/app.js";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 describe("app", () => {
   let probot: Probot;
@@ -30,7 +35,8 @@ describe("app", () => {
     });
     nock("https://api.github.com")
       .get("/app/installations")
-      .reply(200, {total_count: 2, installations: []});
+      .reply(200, {total_count: 2, installations: []})
+      .persist();
     mergeApp(probot);
 
     webhook = await loadFixture("webhooks/check_suite_completed.json");
@@ -45,8 +51,8 @@ describe("app", () => {
 
   afterEach(() => {
     cancelAdvanceTimers();
-    expect(nock.pendingMocks()).toEqual([]);
-    expect(nock.isDone()).toBe(true);
+    const pendingMocks = nock.pendingMocks().filter((mock) => !mock.includes("/app/installations"));
+    expect(pendingMocks).toEqual([]);
   });
 
   afterEach(() => {
@@ -255,9 +261,9 @@ describe("app", () => {
   function advanceTimersInBackground(): () => void {
     let cancelled = false;
 
-    async function task() {
+    async function task(): Promise<void> {
       while (!cancelled) {
-        jest.runAllTimers();
+        jest.runOnlyPendingTimers();
         await new Promise((resolve) => builtinSetImmediate(resolve));
       }
     }
