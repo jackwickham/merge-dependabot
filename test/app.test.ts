@@ -9,8 +9,7 @@ import nock from "nock";
 import {setImmediate as builtinSetImmediate} from "timers";
 import mergeApp from "../src/app.js";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const currentDir = path.dirname(fileURLToPath(import.meta.url));
 
 describe("app", () => {
   let probot: Probot;
@@ -28,10 +27,7 @@ describe("app", () => {
 
     probot = new Probot({
       githubToken: "test",
-      Octokit: ProbotOctokit.defaults({
-        retry: {enabled: false},
-        throttle: {enabled: false},
-      }),
+      Octokit: ProbotOctokit.defaults({retry: {enabled: false}, throttle: {enabled: false}}),
     });
     nock("https://api.github.com")
       .get("/app/installations")
@@ -252,9 +248,7 @@ describe("app", () => {
 
   async function loadFixture<T>(fixture: string): Promise<T> {
     return JSON.parse(
-      await fs.readFile(path.join(__dirname, "fixtures", fixture), {
-        encoding: "utf-8",
-      })
+      await fs.readFile(path.join(currentDir, "fixtures", fixture), {encoding: "utf-8"})
     );
   }
 
