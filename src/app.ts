@@ -7,6 +7,7 @@ type Octokit = InstanceType<typeof ProbotOctokit>;
 interface Context {
   readonly octokit: Octokit;
   readonly withRepo: WithRepo;
+  readonly repo: {owner: string; repo: string};
   readonly log: Logger;
 }
 
@@ -16,6 +17,7 @@ export default async function mergeApp(app: Probot): Promise<void> {
       await checkPr(prNumber, {
         octokit: context.octokit,
         withRepo: (args) => context.repo(args),
+        repo: context.repo(),
         log: context.log,
       });
     }
@@ -24,12 +26,14 @@ export default async function mergeApp(app: Probot): Promise<void> {
 
 async function checkPr(prNumber: number, context: Context): Promise<void> {
   try {
-    context.log.info(`Checking PR ${prNumber}`);
+    context.log.info(`Checking PR ${prNumber} in ${context.repo.owner}/${context.repo.repo}`);
     const {data: pr} = await context.octokit.rest.pulls.get(
       context.withRepo({pull_number: prNumber})
     );
     if (pr.user?.login !== "dependabot[bot]") {
-      context.log.info(`PR ${prNumber} not authored by dependabot, skipping`);
+      context.log.info(
+        `PR ${prNumber} in ${context.repo.owner}/${context.repo.repo} not authored by dependabot, skipping`
+      );
       return;
     }
     const {data: checkStatus} = await context.octokit.rest.checks.listForRef(
@@ -64,7 +68,9 @@ async function checkPr(prNumber: number, context: Context): Promise<void> {
     }
 
     if (!(await mergeability(pr, context))) {
-      context.log.info(`PR ${prNumber} is not mergeable, skipping`);
+      context.log.info(
+        `PR ${prNumber} in ${context.repo.owner}/${context.repo.repo} is not mergeable, skipping`
+      );
       return;
     }
 
@@ -74,18 +80,20 @@ async function checkPr(prNumber: number, context: Context): Promise<void> {
     for (const commit of commits) {
       if (commit.author?.login !== "dependabot[bot]") {
         context.log.info(
-          `Commit ${commit.sha} on PR ${prNumber} not authored by dependabot, skipping`
+          `Commit ${commit.sha} on PR ${prNumber} in ${context.repo.owner}/${context.repo.repo} not authored by dependabot, skipping`
         );
         return;
       }
     }
 
-    context.log.info(`Merging ${prNumber}`);
+    context.log.info(`Merging ${prNumber} in ${context.repo.owner}/${context.repo.repo}`);
     await context.octokit.rest.pulls.merge(
       context.withRepo({pull_number: prNumber, sha: pr.head.sha, merge_method: "squash"})
     );
   } catch (e) {
-    context.log.error(`Error processing PR ${prNumber}: ${e}`);
+    context.log.error(
+      `Error processing PR ${prNumber} in ${context.repo.owner}/${context.repo.repo}: ${e}`
+    );
   }
 }
 
