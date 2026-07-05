@@ -28,6 +28,7 @@
     "probot": "^14.3.2"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@types/ioredis": "^5.0.0",
     "@types/jest": "^30.0.0",
     "@types/node": "^26.1.0",
