@@ -7,7 +7,7 @@
   "type": "module",
   "scripts": {
     "start": "node --async-stack-traces ./lib/index.js",
-    "build": "tsc",
+    "build": "node node_modules/typescript-compiler/bin/tsc",
     "format": "prettier --write **/*.ts",
     "format-check": "prettier --check **/*.ts",
     "lint": "eslint src/**/*.ts",
@@ -41,7 +41,8 @@
     "nock": "^15.0.5",
     "prettier": "^3.9.10",
     "ts-jest": "^29.4.15",
-    "typescript": "^6.0.3"
+    "typescript": "^6.0.3",
+    "typescript-compiler": "npm:typescript@^7.0.2"
   },
   "engines": {
     "node": ">= 18.0.0"
