@@ -39,7 +39,7 @@
     "jest": "^30.5.2",
     "jest-circus": "^30.5.2",
     "nock": "^15.0.6",
-    "prettier": "^3.9.10",
+    "prettier": "^3.10.1",
     "ts-jest": "^29.4.15",
     "typescript": "^6.0.3",
     "typescript-compiler": "npm:typescript@^7.0.2"
